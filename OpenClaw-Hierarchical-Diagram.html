@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw - Hierarchical Architecture</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+      color: #fff;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #00f5ff;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 60px;
+    }
+    
+    /* Main Tree */
+    .tree {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    /* Node Boxes */
+    .node {
+      background: #0c0c10;
+      border: 2px solid #1e1e25;
+      border-radius: 12px;
+      padding: 16px 24px;
+      text-align: center;
+      position: relative;
+      min-width: 180px;
+    }
+    
+    .node-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .node-desc {
+      font-size: 10px;
+      color: #64748b;
+    }
+    
+    /* Color borders */
+    .node-root { border-color: #00f5ff; background: linear-gradient(135deg, #0c0c10, #001a1f); }
+    .node-cyan { border-color: #00f5ff; }
+    .node-green { border-color: #10b981; }
+    .node-purple { border-color: #8b5cf6; }
+    .node-amber { border-color: #f59e0b; }
+    .node-red { border-color: #f43f5e; }
+    
+    /* Connector vertical */
+    .connector {
+      width: 2px;
+      height: 32px;
+      background: #1e1e25;
+    }
+    
+    /* Level Container */
+    .level {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      position: relative;
+    }
+    
+    .level-label {
+      width: 100%;
+      text-align: center;
+      font-size: 10px;
+      color: #64748b;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      margin-top: 24px;
+    }
+    
+    /* First level label */
+    .level:first-child .level-label {
+      margin-top: 0;
+    }
+    
+    /* Sub-nodes container */
+    .sub-items {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .sub-item {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #2a2a35;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OpenClaw Architecture</h1>
+    <div class="subtitle">Hierarchical System Diagram</div>
+    
+    <div class="tree">
+      
+      <!-- LEVEL 1: ROOT -->
+      <div class="node node-root">
+        <div class="node-title" style="color:#00f5ff;">OPENCLAW</div>
+        <div class="node-desc">Agent Gateway System</div>
+      </div>
+      
+      <div class="connector"></div>
+      
+      <!-- LEVEL 2: USER INTERFACE -->
+      <div class="level">
+        <div class="level-label">User Interface Layer</div>
+        <div class="node">
+          <div class="node-title" style="color:#00f5ff;">Messaging Platforms</div>
+          <div class="node-desc">Input & Output</div>
+          <div class="sub-items">
+            <span class="sub-item">Telegram</span>
+            <span class="sub-item">WhatsApp</span>
+            <span class="sub-item">Discord</span>
+            <span class="sub-item">Signal</span>
+            <span class="sub-item">Slack</span>
+            <span class="sub-item">WebChat</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="connector"></div>
+      
+      <!-- LEVEL 3: GATEWAY -->
+      <div class="level">
+        <div class="level-label">Gateway Layer</div>
+        <div class="node node-green">
+          <div class="node-title" style="color:#10b981;">Core Gateway</div>
+          <div class="node-desc">WebSocket Server</div>
+          <div class="sub-items">
+            <span class="sub-item">Port 18789</span>
+            <span class="sub-item">JSON Protocol</span>
+            <span class="sub-item">Event Bus</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="connector"></div>
+      
+      <!-- LEVEL 4: CORE SERVICES -->
+      <div class="level">
+        <div class="level-label">Core Services</div>
+        <div class="node node-purple">
+          <div class="node-title" style="color:#8b5cf6;">Session Manager</div>
+          <div class="node-desc">SQLite Storage</div>
+          <div class="sub-items">
+            <span class="sub-item">History</span>
+            <span class="sub-item">State</span>
+            <span class="sub-item">Lock</span>
+          </div>
+        </div>
+        <div class="node node-purple">
+          <div class="node-title" style="color:#8b5cf6;">Skills Loader</div>
+          <div class="node-desc">Context Injection</div>
+          <div class="sub-items">
+            <span class="sub-item">SKILL.md</span>
+            <span class="sub-item">File Watch</span>
+          </div>
+        </div>
+        <div class="node node-purple">
+          <div class="node-title" style="color:#8b5cf6;">Tool Registry</div>
+          <div class="node-desc">Function Executor</div>
+          <div class="sub-items">
+            <span class="sub-item">Register</span>
+            <span class="sub-item">Execute</span>
+          </div>
+        </div>
+        <div class="node node-purple">
+          <div class="node-title" style="color:#8b5cf6;">Agent Executor</div>
+          <div class="node-desc">Request Builder</div>
+          <div class="sub-items">
+            <span class="sub-item">Queue</span>
+            <span class="sub-item">Prompt</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="connector"></div>
+      
+      <!-- LEVEL 5: MODEL -->
+      <div class="level">
+        <div class="level-label">AI Model Layer</div>
+        <div class="node node-amber">
+          <div class="node-title" style="color:#f59e0b;">LLM Providers</div>
+          <div class="node-desc">Text Generation</div>
+          <div class="sub-items">
+            <span class="sub-item">Anthropic Claude</span>
+            <span class="sub-item">OpenAI GPT-4</span>
+            <span class="sub-item">Google Gemini</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="connector"></div>
+      
+      <!-- LEVEL 6: TOOLS -->
+      <div class="level">
+        <div class="level-label">Tools Layer</div>
+        <div class="node node-red">
+          <div class="node-title" style="color:#f43f5e;">Execution Tools</div>
+          <div class="node-desc">Capabilities</div>
+          <div class="sub-items">
+            <span class="sub-item">exec</span>
+            <span class="sub-item">browser</span>
+            <span class="sub-item">read/write</span>
+            <span class="sub-item">message</span>
+            <span class="sub-item">web_fetch</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="connector"></div>
+      
+      <!-- LEVEL 7: OUTPUT -->
+      <div class="level">
+        <div class="level-label">Output Layer</div>
+        <div class="node">
+          <div class="node-title" style="color:#00f5ff;">Response</div>
+          <div class="node-desc">User Sees Reply</div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</body>
+</html>
