@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Reverse Engineered - Complete Technical Deep Dive</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg-deep: #000000;
+      --bg-surface: #0a0a0f;
+      --bg-elevated: #12121a;
+      --border: #1e1e2e;
+      --cyan: #00f5ff;
+      --emerald: #10b981;
+      --violet: #8b5cf6;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --slate: #64748b;
+      --white: #e2e8f0;
+    }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-deep);
+      color: var(--white);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    
+    /* Title */
+    .title-section {
+      text-align: center;
+      padding: 40px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+    .title-section h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+    .title-section .subtitle {
+      font-size: 14px;
+      color: var(--slate);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0, 245, 255, 0.1);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 10px;
+      margin-top: 16px;
+    }
+    
+    /* Section */
+    .section { margin-bottom: 48px; }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--violet);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border);
+    }
+    
+    /* Definition Box */
+    .definition-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .definition-box p { color: var(--slate); font-size: 12px; }
+    .equation {
+      background: var(--bg-surface);
+      border-radius: 8px;
+      padding: 16px 24px;
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 16px;
+      color: var(--cyan);
+      font-weight: 600;
+    }
+    
+    /* Key Insight */
+    .insight {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(0, 245, 255, 0.1));
+      border: 1px solid var(--violet);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 24px 0;
+    }
+    .insight h3 { color: var(--violet); font-size: 12px; margin-bottom: 12px; }
+    .insight p { font-size: 11px; color: var(--slate); line-height: 1.8; }
+    
+    /* Pipeline Grid */
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .pipeline-step {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .pipeline-step .num { font-size: 10px; color: var(--violet); letter-spacing: 2px; margin-bottom: 8px; }
+    .pipeline-step .title { font-size: 12px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; }
+    .pipeline-step .desc { font-size: 10px; color: var(--slate); }
+    
+    /* Components Grid */
+    .components-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .component {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .component h3 {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .component h3 .icon { width: 8px; height: 8px; border-radius: 50%; }
+    .component ul { list-style: none; font-size: 10px; }
+    .component li {
+      padding: 4px 0;
+      color: var(--slate);
+      display: flex;
+      justify-content: space-between;
+    }
+    .component li span:last-child { color: var(--cyan); }
+    
+    /* Layer Box */
+    .layer {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .layer-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .layer-num {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .layer-num.cyan { border-color: var(--cyan); color: var(--cyan); }
+    .layer-num.emerald { border-color: var(--emerald); color: var(--emerald); }
+    .layer-num.violet { border-color: var(--violet); color: var(--violet); }
+    .layer-num.amber { border-color: var(--amber); color: var(--amber); }
+    .layer-title { font-size: 12px; font-weight: 600; }
+    .layer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px;
+    }
+    .layer-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-size: 10px;
+      text-align: center;
+    }
+    .layer-box.cyan { border-color: var(--cyan); color: var(--cyan); }
+    .layer-box.emerald { border-color: var(--emerald); color: var(--emerald); }
+    .layer-box.violet { border-color: var(--violet); color: var(--violet); }
+    .layer-box.amber { border-color: var(--amber); color: var(--amber); }
+    .layer-box.rose { border-color: var(--rose); color: var(--rose); }
+    .layer-box.slate { border-color: var(--slate); color: var(--slate); }
+    
+    /* Code Block */
+    .code-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 10px;
+      line-height: 1.8;
+    }
+    .kw { color: var(--rose); }
+    .str { color: var(--emerald); }
+    .prop { color: var(--cyan); }
+    .cmt { color: var(--slate); font-style: italic; }
+    
+    /* Data Table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    .data-table th { text-align: left; padding: 12px; background: var(--bg-surface); border: 1px solid var(--border); color: var(--violet); font-weight: 600; }
+    .data-table td { padding: 12px; border: 1px solid var(--border); color: var(--slate); }
+    .data-table td.code { color: var(--cyan); font-family: monospace; }
+    
+    /* Channel Grid */
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px;
+    }
+    .channel-box {
+      background: rgba(0, 245, 255, 0.1);
+      border: 1px solid var(--cyan);
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 10px;
+      text-align: center;
+      color: var(--cyan);
+    }
+    
+    /* Footer */
+    .footer { text-align: center; padding: 40px; border-top: 1px solid var(--border); color: var(--slate); font-size: 10px; }
+    
+    /* TOC */
+    .toc { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 32px; }
+    .toc h3 { color: var(--cyan); font-size: 12px; margin-bottom: 12px; }
+    .toc ul { list-style: none; font-size: 10px; }
+    .toc li { padding: 4px 0; color: var(--slate); }
+    .toc li a { color: var(--violet); text-decoration: none; }
+    .toc li a:hover { color: var(--cyan); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Title -->
+    <div class="title-section">
+      <h1>OpenClaw Reverse Engineered</h1>
+      <div class="subtitle">Complete Technical Deep Dive</div>
+      <div class="badge">VERSION 2026.04 - UNIFIED FILE</div>
+    </div>
+    
+    <!-- TABLE OF CONTENTS -->
+    <div class="toc">
+      <h3>📋 Table of Contents</h3>
+      <ul>
+        <li>01. <a href="#what-is">What is OpenClaw Actually?</a></li>
+        <li>02. <a href="#architecture">System Architecture Overview</a></li>
+        <li>03. <a href="#channels">Messaging Channels</a></li>
+        <li>04. <a href="#protocol">WebSocket Protocol</a></li>
+        <li>05. <a href="#process">What Actually Runs (Process Model)</a></li>
+        <li>06. <a href="#components">Core Components</a></li>
+        <li>07. <a href="#pipeline">10-Step Pipeline</a></li>
+        <li>08. <a href="#tools">Tools System</a></li>
+        <li>09. <a href="#files">File Structure</a></li>
+        <li>10. <a href="#commands">Key Commands</a></li>
+        <li>11. <a href="#security">Security Model</a></li>
+        <li>12. <a href="# invariants">System Invariants</a></li>
+        <li>13. <a href="#reality">User Sees vs Reality</a></li>
+      </ul>
+    </div>
+    
+    <!-- 01. WHAT IS IT -->
+    <div class="section" id="what-is">
+      <div class="section-title">01. What is OpenClaw Actually?</div>
+      <div class="definition-box">
+        <p>OpenClaw is <strong>NOT a model</strong>. It's <strong>NOT intelligence</strong>. It's <strong>NOT consciousness</strong>.</p>
+        <div class="equation">AGENT = Session + Skills + Tools + Model + Workspace</div>
+        <p style="margin-top:16px">Without these 5 things, there's no "agent" - just an API endpoint.</p>
+      </div>
+      <div class="insight">
+        <h3>🔑 KEY INSIGHT</h3>
+        <p>The "personality" you experience comes from SKILLS (loaded into system prompt).<br/>
+        The "intelligence" comes from TOOLS + MODEL.<br/>
+        The "memory" comes from SESSION history.<br/>
+        The "agency" comes from the WRAPPER infrastructure.<br/>
+        The model just outputs text - nothing more.</p>
+      </div>
+    </div>
+    
+    <!-- 02. ARCHITECTURE -->
+    <div class="section" id="architecture">
+      <div class="section-title">02. System Architecture Overview</div>
+      <div class="layer">
+        <div class="layer-title" style="margin-bottom:16px;font-size:12px;color:var(--cyan)">Complete Data Flow</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font-size:10px;">
+          <div class="layer-box cyan">USER</div>
+          <span style="color:var(--slate)">→</span>
+          <div class="layer-box cyan">CHANNELS</div>
+          <span style="color:var(--slate)">→</span>
+          <div class="layer-box emerald">GATEWAY</div>
+          <span style="color:var(--slate)">→</span>
+          <div class="layer-box violet">AGENT LOOP</div>
+          <span style="color:var(--slate)">→</span>
+          <div class="layer-box amber">MODEL</div>
+          <span style="color:var(--slate)">→</span>
+          <div class="layer-box rose">TOOLS</div>
+          <span style="color:var(--slate)">→</span>
+          <div class="layer-box emerald">RESPONSE</div>
+          <span style="color:var(--slate)">→</span>
+          <div class="layer-box cyan">USER</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 03. CHANNELS -->
+    <div class="section" id="channels">
+      <div class="section-title">03. Messaging Channels (Frontend)</div>
+      <div class="channel-grid">
+        <div class="channel-box">Discord</div>
+        <div class="channel-box">Telegram</div>
+        <div class="channel-box">WhatsApp</div>
+        <div class="channel-box">Signal</div>
+        <div class="channel-box">iMessage</div>
+        <div class="channel-box">Slack</div>
+        <div class="channel-box">MS Teams</div>
+        <div class="channel-box">Matrix</div>
+        <div class="channel-box">Google Chat</div>
+        <div class="channel-box">WebChat</div>
+      </div>
+    </div>
+    
+    <!-- 04. PROTOCOL -->
+    <div class="section" id="protocol">
+      <div class="section-title">04. WebSocket Protocol (Wire Format)</div>
+      <pre class="code-block"><span class="cmt">// Frame 1: CONNECT (mandatory first frame)</span>
+{
+  <span class="prop">"type"</span>: <span class="str">"connect"</span>,
+  <span class="prop">"id"</span>: <span class="str">"req-uuid"</span>,
+  <span class="prop">"params"</span>: {
+    <span class="prop">"auth"</span>: { <span class="prop">"token"</span>: <span class="str">"shared-secret"</span> },
+    <span class="prop">"platform"</span>: <span class="str">"telegram"</span>,
+    <span class="prop">"deviceFamily"</span>: <span class="str">"desktop"</span>
+  }
+}
+
+<span class="cmt">// Frame 2: REQUEST</span>
+{ <span class="prop">"type"</span>: <span class="str">"req"</span>, <span class="prop">"method"</span>: <span class="str">"agent"</span>, <span class="prop">"params"</span>: {...} }
+
+<span class="cmt">// Frame 3: RESPONSE</span>
+{ <span class="prop">"type"</span>: <span class="str">"res"</span>, <span class="prop">"ok"</span>: <span class="kw">true</span>, <span class="prop">"payload"</span>: {...} }
+
+<span class="cmt">// Frame 4: EVENT (server push)</span>
+{ <span class="prop">"type"</span>: <span class="str">"event"</span>, <span class="prop">"event"</span>: <span class="str">"tick"</span>, <span class="prop">"payload"</span>: {...} }</pre>
+    </div>
+    
+    <!-- 05. PROCESS MODEL -->
+    <div class="section" id="process">
+      <div class="section-title">05. What Actually Runs (Process Model)</div>
+      <div class="definition-box" style="padding:16px;text-align:left;">
+        <p style="font-size:11px;color:var(--slate);">A single long-lived Gateway process containing:</p>
+        <ul style="list-style:disc;margin-left:20px;margin-top:12px;font-size:10px;color:var(--slate);">
+          <li>WebSocket Server (ws://127.0.0.1:18789)</li>
+          <li>Session Manager (SQLite storage)</li>
+          <li>Skills Loader (file watcher)</li>
+          <li>Tool Registry</li>
+          <li>Agent Executor</li>
+          <li>Channel Handlers (Baileys, grammY, etc)</li>
+          <li>Node Manager</li>
+          <li>Event Bus</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- 06. COMPONENTS -->
+    <div class="section" id="components">
+      <div class="section-title">06. Core Components</div>
+      <div class="components-grid">
+        <div class="component">
+          <h3><span class="icon" style="background:var(--emerald)"></span>Gateway Process</h3>
+          <ul>
+            <li>WebSocket Server <span>ws://127.0.0.1:18789</span></li>
+            <li>Protocol <span>JSON frames</span></li>
+            <li>Validate <span>JSON Schema</span></li>
+            <li>Event Bus <span>tick/agent/presence</span></li>
+          </ul>
+        </div>
+        <div class="component">
+          <h3><span class="icon" style="background:var(--violet)"></span>Session Manager</h3>
+          <ul>
+            <li>Storage <span>~/.openclaw/openclaw.db</span></li>
+            <li>History <span>Message array</span></li>
+            <li>Lock <span>Write serialization</span></li>
+            <li>Resolve <span>sessionKey mapping</span></li>
+          </ul>
+        </div>
+        <div class="component">
+          <h3><span class="icon" style="background:var(--amber)"></span>Skills Loader</h3>
+          <ul>
+            <li>Watching <span>workspace/skills/</span></li>
+            <li>Parsing <span>SKILL.md → prompt</span></li>
+            <li>Inject <span>Into system prompt</span></li>
+            <li>Live <span>File change reload</span></li>
+          </ul>
+        </div>
+        <div class="component">
+          <h3><span class="icon" style="background:var(--rose)"></span>Tool Registry</h3>
+          <ul>
+            <li>Register <span>Function definitions</span></li>
+            <li>Execute <span>Handler functions</span></li>
+            <li>Inject <span>Results back to model</span></li>
+            <li>Sanitize <span>Size limit</span></li>
+          </ul>
+        </div>
+        <div class="component">
+          <h3><span class="icon" style="background:var(--cyan)"></span>Agent Executor</h3>
+          <ul>
+            <li>Queue <span>Per-session serialization</span></li>
+            <li>Workspace <span>Prepare root</span></li>
+            <li>Build <span>Model request</span></li>
+            <li>Stream <span>Assistant deltas</span></li>
+          </ul>
+        </div>
+        <div class="component">
+          <h3><span class="icon" style="background:var(--cyan)"></span>Channel Handlers</h3>
+          <ul>
+            <li>WhatsApp <span>Baileys</span></li>
+            <li>Telegram <span>grammY</span></li>
+            <li>Discord <span>discord.js</span></li>
+            <li>WebChat <span>Static UI</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 07. PIPELINE -->
+    <div class="section" id="pipeline">
+      <div class="section-title">07. The Complete 10-Step Pipeline</div>
+      <div class="pipeline">
+        <div class="pipeline-step">
+          <div class="num">STEP 01</div>
+          <div class="title">MESSAGE ARRIVES</div>
+          <div class="desc">Channel webhook → Channel Handler → sessionKey mapping</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 02</div>
+          <div class="title">SESSION RESOLUTION</div>
+          <div class="desc">Look up or create session in SQLite DB</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 03</div>
+          <div class="title">QUEUE</div>
+          <div class="desc">Serialize per session lane, prevent races</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 04</div>
+          <div class="title">WORKSPACE</div>
+          <div class="desc">Resolve path, acquire write lock</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 05</div>
+          <div class="title">SKILLS</div>
+          <div class="desc">Load skills → inject into system prompt</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 06</div>
+          <div class="title">BUILD PROMPT</div>
+          <div class="desc">system + history + tools → API request</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 07</div>
+          <div class="title">MODEL</div>
+          <div class="desc">Call Anthropic/OpenAI API</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 08</div>
+          <div class="title">TOOLS</div>
+          <div class="desc">If tool_call → execute → inject result → loop</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 09</div>
+          <div class="title">FORMAT</div>
+          <div class="desc">Extract text, remove NO_REPLY, dedupe</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="num">STEP 10</div>
+          <div class="title">RESPONSE</div>
+          <div class="desc">Channel sendMessage → User sees reply</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 08. TOOLS -->
+    <div class="section" id="tools">
+      <div class="section-title">08. Tools - What Creates "Agency"</div>
+      <div class="layer">
+        <div class="layer-header">
+          <div class="layer-num cyan">01</div>
+          <div class="layer-title">Built-in Tools (Shipped with OpenClaw)</div>
+        </div>
+        <div class="layer-grid">
+          <div class="layer-box cyan">exec/process</div>
+          <div class="layer-box cyan">browser</div>
+          <div class="layer-box cyan">web_search</div>
+          <div class="layer-box cyan">web_fetch</div>
+          <div class="layer-box cyan">read/write</div>
+          <div class="layer-box cyan">message</div>
+          <div class="layer-box cyan">canvas</div>
+          <div class="layer-box cyan">code_execution</div>
+          <div class="layer-box cyan">sessions_*</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-header">
+          <div class="layer-num violet">02</div>
+          <div class="layer-title">Skills (SKILL.md injection)</div>
+        </div>
+        <div class="layer-grid">
+          <div class="layer-box violet">Location</div>
+          <div class="layer-box violet">Format</div>
+          <div class="layer-box violet">Injection</div>
+          <div class="layer-box violet">Triggers</div>
+          <div class="layer-box violet">Constraints</div>
+          <div class="layer-box violet">Examples</div>
+          <div class="layer-box violet">Live reload</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-header">
+          <div class="layer-num amber">03</div>
+          <div class="layer-title">Plugins (NPM packages)</div>
+        </div>
+        <div class="layer-grid">
+          <div class="layer-box amber">channel</div>
+          <div class="layer-box amber">model</div>
+          <div class="layer-box amber">tool</div>
+          <div class="layer-box amber">speech</div>
+          <div class="layer-box amber">media</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 09. FILES -->
+    <div class="section" id="files">
+      <div class="section-title">09. File Structure</div>
+      <table class="data-table">
+        <tr><th>Location</th><th>Contents</th></tr>
+        <tr><td>~/.openclaw/</td><td class="code">Root directory</td></tr>
+        <tr><td>~/.openclaw/openclaw.json</td><td class="code">Main config (model, channels)</td></tr>
+        <tr><td>~/.openclaw/openclaw.db</td><td class="code">SQLite session storage</td></tr>
+        <tr><td>~/.openclaw/workspace/</td><td class="code">Per-workspace dirs</td></tr>
+        <tr><td>workspace/skills/</td><td class="code">SKILL.md files</td></tr>
+        <tr><td>workspace/memory/</td><td class="code">Session memory</td></tr>
+        <tr><td>~/.openclaw/browser/</td><td class="code">Chromium profiles</td></tr>
+        <tr><td>~/.openclaw/gateway/</td><td class="code">Gateway state</td></tr>
+        <tr><td>~/.openclaw/nodes/</td><td class="code">Paired devices</td></tr>
+      </table>
+    </div>
+    
+    <!-- 10. COMMANDS -->
+    <div class="section" id="commands">
+      <div class="section-title">10. Key Commands</div>
+      <pre class="code-block"><span class="cmt"># Install</span>
+npm install -g openclaw@latest
+
+<span class="cmt"># Start Gateway</span>
+openclaw gateway
+
+<span class="cmt"># Onboard</span>
+openclaw onboard --install-daemon
+
+<span class="cmt"># Control UI</span>
+openclaw dashboard
+
+<span class="cmt"># Run agent</span>
+openclaw agent "prompt"
+
+<span class="cmt"># Health check</span>
+openclaw status</pre>
+    </div>
+    
+    <!-- 11. SECURITY -->
+    <div class="section" id="security">
+      <div class="section-title">11. Security Model</div>
+      <div class="layer-grid">
+        <div class="layer-box slate">Connect Handshake (mandatory)</div>
+        <div class="layer-box slate">Device Identity</div>
+        <div class="layer-box slate">Auth Modes (token/proxy/none)</div>
+        <div class="layer-box slate">Idempotency Keys</div>
+        <div class="layer-box slate">Nonce Challenge</div>
+        <div class="layer-box slate">Device Token</div>
+      </div>
+    </div>
+    
+    <!-- 12. INVARIANTS -->
+    <div class="section" id="invariants">
+      <div class="section-title">12. System Invariants (Must Be True)</div>
+      <div class="layer-grid">
+        <div class="layer-box slate">Exactly ONE Gateway controls Baileys</div>
+        <div class="layer-box slate">Handshake MANDATORY</div>
+        <div class="layer-box slate">Events NOT replayed</div>
+        <div class="layer-box slate">Runs SERIALIZED per session</div>
+        <div class="layer-box slate">First frame MUST be connect</div>
+        <div class="layer-box slate">Idempotency for send/agent</div>
+      </div>
+    </div>
+    
+    <!-- 13. REALITY -->
+    <div class="section" id="reality">
+      <div class="section-title">13. What User Sees vs Reality</div>
+      <table class="data-table">
+        <tr><th>User Sees</th><th>Reality</th></tr>
+        <tr><td>"It's thinking"</td><td class="code">Model calculating response</td></tr>
+        <tr><td>"It remembered"</td><td class="code">SQLite history query</td></tr>
+        <tr><td>"It uses browser"</td><td class="code">CDP commands sent</td></tr>
+        <tr><td>"It learned"</td><td class="code">Variables stored</td></tr>
+        <tr><td>"It's smart"</td><td class="code">Skills in prompt</td></tr>
+        <tr><td>"It feels alive"</td><td class="code">Fast tool execution</td></tr>
+        <tr><td>"It's an agent"</td><td class="code">Session + context + tools</td></tr>
+        <tr><td>"It's conscious"</td><td class="code">Just text generation</td></tr>
+      </table>
+    </div>
+    
+    <div class="footer">
+      OpenClaw Reverse Engineered | Complete Technical Deep Dive | 2026.04
+    </div>
+  </div>
+</body>
+</html>
